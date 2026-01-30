@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水冷系统管道规格计算器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f5ff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(13, 71, 161, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: #1a73e8;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e8f0fe;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #1a73e8;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+        }
+        
+        .input-with-unit {
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-with-unit input {
+            flex: 1;
+            border-right: none;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        
+        .unit {
+            background-color: #f1f3f4;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            color: #666;
+            font-weight: 500;
+            min-width: 70px;
+        }
+        
+        .result-box {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #1a73e8;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #1a73e8;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0d47a1;
+        }
+        
+        .result-unit {
+            color: #666;
+            font-weight: 500;
+            margin-left: 5px;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        
+        .warning .result-title {
+            color: #856404;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        
+        .success .result-title {
+            color: #155724;
+        }
+        
+        .calculation-steps {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .step {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #dee2e6;
+        }
+        
+        .step:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .step-formula {
+            font-family: 'Courier New', monospace;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            overflow-x: auto;
+        }
+        
+        .pipe-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .pipe-table th, .pipe-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+            text-align: center;
+        }
+        
+        .pipe-table th {
+            background-color: #1a73e8;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .pipe-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .pipe-table tr:hover {
+            background-color: #e8f0fe;
+        }
+        
+        .selected-pipe {
+            background-color: #d4edda !important;
+            font-weight: 600;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #1a73e8;
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0d47a1;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-reset {
+            background-color: #6c757d;
+            margin-left: 15px;
+        }
+        
+        .btn-reset:hover {
+            background-color: #545b62;
+        }
+        
+        .footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .parameter-info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .recommended-value {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .range-display {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .slider-container {
+            margin-top: 10px;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a73e8;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .medium-value {
+            background-color: #d4edda;
+        }
+        
+        .high-value {
+            background-color: #fff3cd;
+        }
+        
+        .too-high-value {
+            background-color: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> 水冷系统管道规格计算器</h1>
+            <p class="subtitle">填写相关参数即可计算水冷系统一次供管所需管道规格，考虑因素包括：介质类型、介质流速、供回介质温度差等</p>
+        </header>
+        
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-edit"></i> 计算参数输入</h2>
+            
+            <div class="form-group">
+                <label for="projectName">项目名称</label>
+                <input type="text" id="projectName" placeholder="例如：XX数据中心冷却系统" value="示例项目">
+            </div>
+            
+            <div class="form-group">
+                <label for="mediumType">介质类型</label>
+                <select id="mediumType">
+                    <option value="water">水</option>
+                    <option value="glycol25">乙二醇溶液 (25%)</option>
+                    <option value="brine20">盐水 (20%)</option>
+                </select>
+                <div class="parameter-info" id="mediumInfo">密度: 1000 kg/m³, 比热: 4.187 kJ/(kg·°C), 推荐流速: 1.0-2.5 m/s</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="coolingLoad">设计冷负荷 (kW)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="coolingLoad" min="1" max="10000" value="500">
+                    <div class="unit">kW</div>
+                </div>
+                <div class="range-display">
+                    <span>小型系统: &lt; 100 kW</span>
+                    <span>中型系统: 100-1000 kW</span>
+                    <span>大型系统: &gt; 1000 kW</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="supplyTemp">供水温度 (°C)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="supplyTemp" min="1" max="30" value="7">
+                    <div class="unit">°C</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="returnTemp">回水温度 (°C)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="returnTemp" min="5" max="40" value="12">
+                    <div class="unit">°C</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tempDiff">供回水温差 (°C)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="tempDiff" min="1" max="20" value="5" readonly>
+                    <div class="unit">°C</div>
+                </div>
+                <div class="parameter-info" id="tempDiffInfo">标准空调系统推荐温差: 5°C</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="flowVelocity">介质流速 (m/s)</label>
+                <div class="input-with-unit">
+                    <input type="number" id="flowVelocity" min="0.5" max="3" step="0.1" value="1.5">
+                    <div class="unit">m/s</div>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="flowVelocitySlider" class="slider" min="0.5" max="3" step="0.1" value="1.5">
+                </div>
+                <div class="range-display">
+                    <span>较低流速: 0.5-1.0 m/s</span>
+                    <span class="recommended-value">推荐: 1.0-2.0 m/s</span>
+                    <span>较高流速: 2.0-3.0 m/s</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="safetyFactor">安全系数</label>
+                <div class="input-with-unit">
+                    <input type="number" id="safetyFactor" min="1.0" max="1.5" step="0.05" value="1.1">
+                    <div class="unit">-</div>
+                </div>
+                <div class="parameter-info">通常取1.1-1.2，考虑系统余量和未来扩展</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="pipeMaterial">管道材质</label>
+                <select id="pipeMaterial">
+                    <option value="steel">钢管</option>
+                    <option value="copper">铜管</option>
+                    <option value="pvc">PVC管</option>
+                    <option value="ppr">PPR管</option>
+                </select>
+            </div>
+            
+            <button class="btn" id="calculateBtn"><i class="fas fa-calculator"></i> 计算管道规格</button>
+            <button class="btn btn-reset" id="resetBtn"><i class="fas fa-redo"></i> 重置参数</button>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-chart-line"></i> 计算结果</h2>
+            
+            <div class="result-box">
+                <div class="result-title">所需流量</div>
+                <div><span class="result-value" id="flowRateResult">0.00</span><span class="result-unit">m³/h</span></div>
+                <div class="parameter-info">G = Q / (ρ × c × Δt ) × 3600× 安全系数</div>
+            </div>
+            
+            <div class="result-box">
+                <div class="result-title">管道计算内径</div>
+                <div><span class="result-value" id="pipeInnerDiameter">0.00</span><span class="result-unit">mm</span></div>
+                <div class="parameter-info">d = √(4G / (3600 × π × v)) × 1000</div>
+            </div>
+            
+            <div class="result-box success" id="recommendedPipeBox">
+                <div class="result-title">推荐公称直径</div>
+                <div><span class="result-value" id="recommendedPipe">DN 0</span></div>
+                <div class="parameter-info">根据计算内径向上取整到标准规格</div>
+            </div>
+            
+            <div class="result-box" id="actualVelocityBox">
+                <div class="result-title">实际流速</div>
+                <div><span class="result-value" id="actualVelocity">0.00</span><span class="result-unit">m/s</span></div>
+                <div class="parameter-info">v_actual = G / (3600 × π × (d/1000)² / 4)</div>
+            </div>
+            
+            <div class="result-box">
+                <div class="result-title">压力损失估算</div>
+                <div><span class="result-value" id="pressureLoss">0</span><span class="result-unit">Pa/100m</span></div>
+                <div class="parameter-info">ΔP ≈ λ·(L/d)·(ρv²/2)，λ取0.02，L=100m</div>
+            </div>
+            
+            <div class="calculation-steps">
+                <h3><i class="fas fa-list-ol"></i> 计算步骤</h3>
+                <div class="step">
+                    <strong>1. 计算供回水温差</strong>
+                    <div class="step-formula">Δt = T<sub>供</sub> - T<sub>回</sub> = <span id="step1">0</span> °C</div>
+                </div>
+                <div class="step">
+                    <strong>2. 获取介质物性参数</strong>
+                    <div class="step-formula">ρ = <span id="step2Density">0</span> kg/m³, c = <span id="step2SpecificHeat">0</span> kJ/(kg·°C)</div>
+                </div>
+                <div class="step">
+                    <strong>3. 计算所需体积流量</strong>
+                    <div class="step-formula">G = Q / (ρ × c × Δt ×) 3600 × 安全系数 = <span id="step3">0</span> m³/h</div>
+                </div>
+                <div class="step">
+                    <strong>4. 计算管道内径</strong>
+                    <div class="step-formula">d = √(4G / (3600 × π × v)) × 1000 = <span id="step4">0</span> mm</div>
+                </div>
+                <div class="step">
+                    <strong>5. 选择标准管道规格</strong>
+                    <div class="step-formula">根据内径 <span id="step5">0</span> mm，选择最接近的标准管道 DN <span id="step5DN">0</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2 class="card-title"><i class="fas fa-table"></i> 管道规格参考表</h2>
+            <table class="pipe-table">
+                <thead>
+                    <tr>
+                        <th>公称直径</th>
+                        <th>外径 (mm)</th>
+                        <th>内径 (mm)</th>
+                        <th>壁厚 (mm)</th>
+                        <th>适用流量范围 (m³/h)</th>
+                        <th>推荐流速范围 (m/s)</th>
+                    </tr>
+                </thead>
+                <tbody id="pipeTableBody">
+                    <!-- 管道数据将通过JavaScript动态生成 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p><i class="fas fa-info-circle"></i> 本计算器依据《实用供热空调设计手册》及相关工程规范开发，计算结果仅供参考，实际工程中需结合详细水力计算。</p>
+            <p>© 2023 水冷系统管道规格计算器 | 设计用于工程选型参考</p>
+        </div>
+    </div>
+
+    <script>
+        // 介质物性参数
+        const mediumProperties = {
+            water: {
+                name: "水",
+                density: 1000, // kg/m³
+                specificHeat: 4.187, // kJ/(kg·°C)
+                velocityRange: [1.0, 2.5] // m/s
+            },
+            glycol25: {
+                name: "乙二醇溶液 (25%)",
+                density: 1050,
+                specificHeat: 3.56,
+                velocityRange: [0.8, 2.2]
+            },
+            brine20: {
+                name: "盐水 (20%)",
+                density: 1150,
+                specificHeat: 3.42,
+                velocityRange: [0.7, 2.0]
+            }
+        };
+        
+        // 管道规格数据
+        const pipeSpecs = [
+            { dn: 15, outerDiameter: 21.3, innerDiameter: 15.8, wallThickness: 2.8, flowRange: [0.5, 1.2] },
+            { dn: 20, outerDiameter: 26.9, innerDiameter: 21.2, wallThickness: 2.8, flowRange: [0.8, 2.0] },
+            { dn: 25, outerDiameter: 33.7, innerDiameter: 27.2, wallThickness: 3.2, flowRange: [1.5, 3.5] },
+            { dn: 32, outerDiameter: 42.4, innerDiameter: 35.8, wallThickness: 3.4, flowRange: [2.5, 6.0] },
+            { dn: 40, outerDiameter: 48.3, innerDiameter: 41.0, wallThickness: 3.7, flowRange: [3.5, 8.0] },
+            { dn: 50, outerDiameter: 60.3, innerDiameter: 53.0, wallThickness: 3.9, flowRange: [5.0, 12.0] },
+            { dn: 65, outerDiameter: 76.1, innerDiameter: 68.0, wallThickness: 4.5, flowRange: [8.0, 20.0] },
+            { dn: 80, outerDiameter: 88.9, innerDiameter: 80.0, wallThickness: 4.5, flowRange: [12, 30] },
+            { dn: 100, outerDiameter: 114.3, innerDiameter: 105.3, wallThickness: 4.5, flowRange: [20, 50] },
+            { dn: 125, outerDiameter: 139.7, innerDiameter: 130.7, wallThickness: 4.5, flowRange: [32, 80] },
+            { dn: 150, outerDiameter: 168.3, innerDiameter: 159.3, wallThickness: 4.5, flowRange: [50, 120] },
+            { dn: 200, outerDiameter: 219.1, innerDiameter: 207.1, wallThickness: 6.0, flowRange: [80, 200] },
+            { dn: 250, outerDiameter: 273.0, innerDiameter: 259.0, wallThickness: 7.0, flowRange: [130, 320] },
+            { dn: 300, outerDiameter: 323.9, innerDiameter: 309.9, wallThickness: 7.0, flowRange: [180, 450] }
+        ];
+        
+        // 系统类型与推荐温差
+        const systemTypes = {
+            ac: { name: "空调冷水系统", tempDiff: 5 },
+            process: { name: "工艺冷却水系统", tempDiff: 9 },
+            iceStorage: { name: "冰蓄冷系统", tempDiff: 11 }
+        };
+        
+        // DOM元素
+        const mediumTypeSelect = document.getElementById('mediumType');
+        const mediumInfo = document.getElementById('mediumInfo');
+        const supplyTempInput = document.getElementById('supplyTemp');
+        const returnTempInput = document.getElementById('returnTemp');
+        const tempDiffInput = document.getElementById('tempDiff');
+        const tempDiffInfo = document.getElementById('tempDiffInfo');
+        const flowVelocityInput = document.getElementById('flowVelocity');
+        const flowVelocitySlider = document.getElementById('flowVelocitySlider');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const pipeTableBody = document.getElementById('pipeTableBody');
+        
+        // 结果元素
+        const flowRateResult = document.getElementById('flowRateResult');
+        const pipeInnerDiameter = document.getElementById('pipeInnerDiameter');
+        const recommendedPipe = document.getElementById('recommendedPipe');
+        const actualVelocity = document.getElementById('actualVelocity');
+        const pressureLoss = document.getElementById('pressureLoss');
+        const recommendedPipeBox = document.getElementById('recommendedPipeBox');
+        const actualVelocityBox = document.getElementById('actualVelocityBox');
+        
+        // 计算步骤元素
+        const step1 = document.getElementById('step1');
+        const step2Density = document.getElementById('step2Density');
+        const step2SpecificHeat = document.getElementById('step2SpecificHeat');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        const step5 = document.getElementById('step5');
+        const step5DN = document.getElementById('step5DN');
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 填充管道表格
+            populatePipeTable();
+            
+            // 设置事件监听器
+            setupEventListeners();
+            
+            // 计算初始值
+            calculatePipeSpec();
+            
+            // 更新介质信息
+            updateMediumInfo();
+        });
+        
+        // 填充管道表格
+        function populatePipeTable() {
+            pipeTableBody.innerHTML = '';
+            
+            pipeSpecs.forEach(pipe => {
+                const row = document.createElement('tr');
+                const minVelocity = (pipe.flowRange[0] / 3600) / (Math.PI * Math.pow(pipe.innerDiameter/1000, 2) / 4);
+                const maxVelocity = (pipe.flowRange[1] / 3600) / (Math.PI * Math.pow(pipe.innerDiameter/1000, 2) / 4);
+                
+                row.innerHTML = `
+                    <td>DN ${pipe.dn}</td>
+                    <td>${pipe.outerDiameter.toFixed(1)}</td>
+                    <td>${pipe.innerDiameter.toFixed(1)}</td>
+                    <td>${pipe.wallThickness.toFixed(1)}</td>
+                    <td>${pipe.flowRange[0]} - ${pipe.flowRange[1]}</td>
+                    <td>${minVelocity.toFixed(2)} - ${maxVelocity.toFixed(2)}</td>
+                `;
+                
+                pipeTableBody.appendChild(row);
+            });
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 介质类型改变
+            mediumTypeSelect.addEventListener('change', function() {
+                updateMediumInfo();
+                calculatePipeSpec();
+            });
+            
+            // 温度输入改变
+            supplyTempInput.addEventListener('input', function() {
+                updateTemperatureDiff();
+                calculatePipeSpec();
+            });
+            
+            returnTempInput.addEventListener('input', function() {
+                updateTemperatureDiff();
+                calculatePipeSpec();
+            });
+            
+            // 流速输入与滑块同步
+            flowVelocityInput.addEventListener('input', function() {
+                flowVelocitySlider.value = this.value;
+                calculatePipeSpec();
+            });
+            
+            flowVelocitySlider.addEventListener('input', function() {
+                flowVelocityInput.value = this.value;
+                calculatePipeSpec();
+            });
+            
+            // 计算按钮
+            calculateBtn.addEventListener('click', calculatePipeSpec);
+            
+            // 重置按钮
+            resetBtn.addEventListener('click', resetParameters);
+            
+            // 其他输入字段
+            document.getElementById('coolingLoad').addEventListener('input', calculatePipeSpec);
+            document.getElementById('safetyFactor').addEventListener('input', calculatePipeSpec);
+        }
+        
+        // 更新介质信息
+        function updateMediumInfo() {
+            const medium = mediumProperties[mediumTypeSelect.value];
+            mediumInfo.textContent = `密度: ${medium.density} kg/m³, 比热: ${medium.specificHeat} kJ/(kg·°C), 推荐流速: ${medium.velocityRange[0]}-${medium.velocityRange[1]} m/s`;
+            
+            // 更新流速输入的推荐值显示
+            const recommendedValue = (medium.velocityRange[0] + medium.velocityRange[1]) / 2;
+            flowVelocityInput.value = recommendedValue.toFixed(1);
+            flowVelocitySlider.value = recommendedValue.toFixed(1);
+            
+            // 根据介质类型调整推荐温差
+            if (mediumTypeSelect.value === 'water') {
+                tempDiffInfo.textContent = "标准空调系统推荐温差: 5°C";
+            } else if (mediumTypeSelect.value === 'glycol25') {
+                tempDiffInfo.textContent = "乙二醇系统推荐温差: 6-8°C";
+            } else if (mediumTypeSelect.value === 'brine20') {
+                tempDiffInfo.textContent = "盐水系统推荐温差: 5-7°C";
+            }
+        }
+        
+        // 更新温差
+        function updateTemperatureDiff() {
+            const supplyTemp = parseFloat(supplyTempInput.value) || 0;
+            const returnTemp = parseFloat(returnTempInput.value) || 0;
+            const diff = Math.abs(supplyTemp - returnTemp);
+            
+            tempDiffInput.value = diff.toFixed(1);
+            
+            // 根据温差更新信息
+            if (diff < 3) {
+                tempDiffInfo.innerHTML = "温差过小，建议增大温差以减小流量和管径 <span class='recommended-value'>(推荐>3°C)</span>";
+                tempDiffInfo.parentElement.classList.add('warning');
+            } else if (diff > 15) {
+                tempDiffInfo.innerHTML = "温差过大，请确认参数是否正确 <span class='recommended-value'>(推荐<15°C)</span>";
+                tempDiffInfo.parentElement.classList.add('warning');
+            } else {
+                tempDiffInfo.innerHTML = "标准空调系统推荐温差: 5°C";
+                tempDiffInfo.parentElement.classList.remove('warning');
+            }
+        }
+        
+        // 计算管道规格
+        function calculatePipeSpec() {
+            // 获取输入值
+            const coolingLoad = parseFloat(document.getElementById('coolingLoad').value) || 0;
+            const supplyTemp = parseFloat(supplyTempInput.value) || 0;
+            const returnTemp = parseFloat(returnTempInput.value) || 0;
+            const tempDiff = Math.abs(supplyTemp - returnTemp);
+            const flowVelocity = parseFloat(flowVelocityInput.value) || 0;
+            const safetyFactor = parseFloat(document.getElementById('safetyFactor').value) || 1.0;
+            
+            // 获取介质属性
+            const medium = mediumProperties[mediumTypeSelect.value];
+            const density = medium.density;
+            const specificHeat = medium.specificHeat;
+            
+            // 计算步骤1: 供回水温差
+            step1.textContent = tempDiff.toFixed(1);
+            
+            // 计算步骤2: 介质物性参数
+            step2Density.textContent = density;
+            step2SpecificHeat.textContent = specificHeat;
+            
+            // 计算步骤3: 所需体积流量 (m³/h)
+            // G = Q / (ρ × c × Δt × )3600)× 安全系数
+            let flowRate = 0;
+            if (tempDiff > 0) {
+               flowRate = (coolingLoad * 3600) / (density * specificHeat * tempDiff) * safetyFactor;
+            }
+            flowRateResult.textContent = flowRate.toFixed(2);
+            step3.textContent = flowRate.toFixed(2);
+            
+            // 计算步骤4: 管道内径 (mm)
+            // d = √(4G / (3600 × π × v)) × 1000
+            let innerDiameter = 0;
+            if (flowVelocity > 0) {
+                innerDiameter = Math.sqrt(4 * flowRate / (3600 * Math.PI * flowVelocity)) * 1000;
+            }
+            pipeInnerDiameter.textContent = innerDiameter.toFixed(1);
+            step4.textContent = innerDiameter.toFixed(1);
+            
+            // 计算步骤5: 选择标准管道
+            let selectedPipe = null;
+            for (const pipe of pipeSpecs) {
+                if (pipe.innerDiameter >= innerDiameter) {
+                    selectedPipe = pipe;
+                    break;
+                }
+            }
+            
+            // 如果没有找到合适的管道，选择最大的
+            if (!selectedPipe) {
+                selectedPipe = pipeSpecs[pipeSpecs.length - 1];
+            }
+            
+            recommendedPipe.textContent = `DN ${selectedPipe.dn}`;
+            step5.textContent = innerDiameter.toFixed(1);
+            step5DN.textContent = selectedPipe.dn;
+            
+            // 计算实际流速
+            const actualFlowVelocity = flowRate / 3600 / (Math.PI * Math.pow(selectedPipe.innerDiameter/1000, 2) / 4);
+            actualVelocity.textContent = actualFlowVelocity.toFixed(2);
+            
+            // 计算压力损失估算 (Pa/100m)
+            // ΔP ≈ λ·(L/d)·(ρv²/2)，λ取0.02，L=100m
+            const pressureLossValue = 0.02 * (100 / (selectedPipe.innerDiameter/1000)) * (density * Math.pow(actualFlowVelocity, 2) / 2);
+            pressureLoss.textContent = Math.round(pressureLossValue);
+            
+            // 更新管道表格中的选中行
+            updateSelectedPipeInTable(selectedPipe.dn);
+            
+            // 根据实际流速设置样式
+            updateVelocityStyle(actualFlowVelocity, medium.velocityRange);
+            
+            // 根据温差设置样式
+            updateTemperatureDiffStyle(tempDiff);
+        }
+        
+        // 更新管道表格中的选中行
+        function updateSelectedPipeInTable(selectedDN) {
+            const rows = pipeTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                row.classList.remove('selected-pipe');
+                
+                const firstCell = row.querySelector('td:first-child');
+                if (firstCell && firstCell.textContent === `DN ${selectedDN}`) {
+                    row.classList.add('selected-pipe');
+                }
+            });
+        }
+        
+        // 根据实际流速设置样式
+        function updateVelocityStyle(velocity, recommendedRange) {
+            const [minRec, maxRec] = recommendedRange;
+            
+            // 清除所有样式类
+            actualVelocityBox.classList.remove('medium-value', 'high-value', 'too-high-value');
+            
+            if (velocity >= minRec && velocity <= maxRec) {
+                // 在推荐范围内
+                actualVelocityBox.classList.add('medium-value');
+                actualVelocityBox.querySelector('.parameter-info').textContent = `流速在推荐范围内 (${minRec}-${maxRec} m/s)`;
+            } else if (velocity > maxRec && velocity <= maxRec * 1.2) {
+                // 略高于推荐范围
+                actualVelocityBox.classList.add('high-value');
+                actualVelocityBox.querySelector('.parameter-info').textContent = `流速略高，建议检查 (推荐: ${minRec}-${maxRec} m/s)`;
+            } else if (velocity > maxRec * 1.2) {
+                // 过高
+                actualVelocityBox.classList.add('too-high-value');
+                actualVelocityBox.querySelector('.parameter-info').textContent = `流速过高，可能导致压损过大和噪音 (推荐: ${minRec}-${maxRec} m/s)`;
+            } else {
+                // 低于推荐范围
+                actualVelocityBox.querySelector('.parameter-info').textContent = `流速较低，可能导致管径偏大 (推荐: ${minRec}-${maxRec} m/s)`;
+            }
+        }
+        
+        // 根据温差设置样式
+        function updateTemperatureDiffStyle(tempDiff) {
+            if (tempDiff < 3) {
+                tempDiffInput.parentElement.classList.add('warning');
+            } else if (tempDiff > 15) {
+                tempDiffInput.parentElement.classList.add('warning');
+            } else {
+                tempDiffInput.parentElement.classList.remove('warning');
+            }
+        }
+        
+        // 重置参数
+        function resetParameters() {
+            document.getElementById('projectName').value = "示例项目";
+            document.getElementById('coolingLoad').value = "500";
+            document.getElementById('supplyTemp').value = "7";
+            document.getElementById('returnTemp').value = "12";
+            document.getElementById('safetyFactor').value = "1.1";
+            document.getElementById('pipeMaterial').value = "steel";
+            
+            // 更新介质信息也会重置流速
+            updateMediumInfo();
+            
+            // 重新计算
+            calculatePipeSpec();
+            
+            // 显示重置成功消息
+            alert("参数已重置为默认值！");
+        }
+    </script>
+</body>
+</html>
